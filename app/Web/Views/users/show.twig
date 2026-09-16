@@ -1,0 +1,13 @@
+{% extends 'layout.twig' %}
+
+{% block title %}{{ user.name }}{% endblock %}
+
+{% block content %}
+    <h1>{{ user.name }}</h1>
+    <p>Email : {{ user.email }}</p>
+    <p>Créé le : {{ user.created_at }}</p>
+    <p>
+        <a class="button" href="{{ url('/users/' ~ user.id ~ '/edit') }}">Modifier</a>
+        <a href="{{ url('/users') }}">Retour à la liste</a>
+    </p>
+{% endblock %}

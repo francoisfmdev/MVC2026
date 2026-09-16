@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+use PDO;
+
+return new class {
+    public function up(PDO $pdo): void
+    {
+        $pdo->exec('
+            -- Écrivez le SQL de création ici
+        ');
+    }
+
+    public function down(PDO $pdo): void
+    {
+        $pdo->exec('
+            -- Écrivez le SQL d\'annulation ici
+        ');
+    }
+};

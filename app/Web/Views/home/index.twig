@@ -1,0 +1,9 @@
+{% extends 'layout.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+    <h1>Framework MVC pédagogique</h1>
+    <p>Exemple CRUD : gestion des utilisateurs (Web Twig + API JSON, même modèle).</p>
+    <p><a class="button" href="{{ url('/users') }}">Voir les utilisateurs</a></p>
+{% endblock %}

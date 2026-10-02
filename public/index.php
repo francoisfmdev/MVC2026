@@ -18,7 +18,7 @@ use Core\Env;
 use Core\Request;
 use Core\Router;
 
-// 1. Variables d'environnement avant tout le reste (DSN, APP_BASE_PATH, API_TOKEN).
+// 1. Variables d'environnement avant tout le reste (DSN, APP_BASE_PATH).
 Env::load(BASE_PATH . '/.env');
 
 // 2. Session PHP native (flash, CSRF, AuthMiddleware web).

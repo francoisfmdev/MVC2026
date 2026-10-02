@@ -10,20 +10,28 @@ namespace Core;
  */
 abstract class Controller
 {
+    /**
+     * DI : View, Session, Request, Auth (pour $this->auth dans les enfants).
+     */
     public function __construct(
         protected View $view,
         protected Session $session,
         protected Request $request,
+        protected \App\Auth $auth,
     ) {
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * Affiche un template Twig (chemin relatif à app/Web/Views/).
+     *
+     * @param array<string, mixed> $data
+     */
     protected function view(string $template, array $data = []): void
     {
         echo $this->view->render($template, $data);
     }
 
-    /** En-tête Location. $path est une route interne (« /users »), pas une URL absolue. */
+    /** En-tête Location. $path est une route interne (« /todos »), pas une URL absolue. */
     protected function redirect(string $path): never
     {
         $base = rtrim((string) Env::get('APP_BASE_PATH', ''), '/');

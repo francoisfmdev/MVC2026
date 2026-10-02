@@ -5,19 +5,16 @@ declare(strict_types=1);
 use PDO;
 
 /**
- * SQL brut volontaire : pas de schéma abstrait.
- * Table des comptes (auth uniquement, plus de CRUD public).
- * Exécutée par : php framework migrate
+ * Liste de tâches globale (pas de user_id) : il faut être connecté pour y accéder.
  */
 return new class {
     public function up(PDO $pdo): void
     {
         $pdo->exec('
-            CREATE TABLE `users` (
+            CREATE TABLE `todos` (
                 `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                `name` VARCHAR(100) NOT NULL,
-                `email` VARCHAR(190) NOT NULL UNIQUE,
-                `password_hash` VARCHAR(255) NOT NULL,
+                `title` VARCHAR(255) NOT NULL,
+                `is_done` TINYINT(1) NOT NULL DEFAULT 0,
                 `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ');
@@ -25,6 +22,6 @@ return new class {
 
     public function down(PDO $pdo): void
     {
-        $pdo->exec('DROP TABLE IF EXISTS `users`');
+        $pdo->exec('DROP TABLE IF EXISTS `todos`');
     }
 };

@@ -28,6 +28,9 @@ final class Container
     /** @var array<string, true> */
     private array $singletons = [];
 
+    /**
+     * Le conteneur se connaît lui-même : make(Container::class) fonctionne.
+     */
     public function __construct()
     {
         $this->instances[self::class] = $this;
@@ -35,6 +38,9 @@ final class Container
     }
 
     /**
+     * Associe un identifiant (souvent une interface) à une fabrique.
+     * Chaque make() rappelle la fabrique (nouvelle instance).
+     *
      * @param callable(self): mixed $factory
      */
     public function bind(string $id, callable $factory): void
@@ -44,6 +50,8 @@ final class Container
     }
 
     /**
+     * Comme bind(), mais une seule instance est conservée (PDO, Auth, View…).
+     *
      * @param callable(self): mixed $factory
      */
     public function singleton(string $id, callable $factory): void

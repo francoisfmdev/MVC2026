@@ -23,6 +23,18 @@ final class DTOTest extends TestCase
         $this->assertSame('Ada', $dto->name);
         $this->assertSame(36, $dto->age);
         $this->assertSame(['name' => 'Ada', 'age' => 36], $dto->toArray());
+        $this->assertSame(['name' => 'Ada', 'age' => 36], $dto->jsonSerialize());
+        $this->assertSame(
+            '{"name":"Ada","age":36}',
+            json_encode($dto, JSON_UNESCAPED_UNICODE)
+        );
+    }
+
+    public function testFromArrayIgnoresExtraKeys(): void
+    {
+        $dto = SampleDTO::fromArray(['name' => 'Ada', 'age' => 36, 'secret' => 'nope']);
+
+        $this->assertSame(['name' => 'Ada', 'age' => 36], $dto->toArray());
     }
 
     public function testMissingRequiredFieldThrows(): void

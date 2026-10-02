@@ -17,6 +17,10 @@ final class Env
 
     private static bool $loaded = false;
 
+    /**
+     * Lit le fichier .env et remplit le tableau interne.
+     * Les lignes vides et les commentaires # sont ignorés.
+     */
     public static function load(string $path): void
     {
         if (!is_file($path)) {
@@ -55,6 +59,9 @@ final class Env
         self::$loaded = true;
     }
 
+    /**
+     * Lit une clé. Si elle n'existe pas, retourne $default (jamais d'exception).
+     */
     public static function get(string $key, mixed $default = null): mixed
     {
         if (!self::$loaded && !array_key_exists($key, self::$vars)) {
@@ -64,6 +71,7 @@ final class Env
         return self::$vars[$key] ?? $default;
     }
 
+    /** Indique si load() a déjà réussi (utile en tests). */
     public static function isLoaded(): bool
     {
         return self::$loaded;

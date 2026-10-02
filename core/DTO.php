@@ -9,15 +9,20 @@ use ReflectionNamedType;
 use ReflectionProperty;
 
 /**
- * Objet de transfert (entrée formulaire / JSON ou sortie API).
+ * Objet de transfert : entrée (formulaire / JSON) ET sortie (API / vues).
  * Ce n'est pas un modèle : pas de SQL ici.
  *
- * fromArray() hydrate les propriétés publiques par réflexion et vérifie
- * les types PHP (int, string…). Champ requis manquant → ValidationException.
+ * Entrée : fromArray() valide types + champs requis → ValidationException.
+ * Sortie : fromArray() sur **une** ligne SQL. Les clés en trop sont ignorées
+ * (ex. password_hash n'apparaît pas dans UserDTO).
+ * Une liste : foreach dans le contrôleur, pas de fromRows / array_map.
+ * json_encode() passe par jsonSerialize() = toArray().
  */
-abstract class DTO
+abstract class DTO implements \JsonSerializable
 {
     /**
+     * Hydrate un DTO depuis un tableau (formulaire ou JSON).
+     *
      * @param array<string, mixed> $data
      */
     public static function fromArray(array $data): static
@@ -58,7 +63,11 @@ abstract class DTO
         return $instance;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Propriétés publiques → tableau (JSON, tests).
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         $class = new ReflectionClass($this);
@@ -70,6 +79,19 @@ abstract class DTO
         return $data;
     }
 
+    /**
+     * Contrat JSON : le client ne voit que les champs du DTO, jamais la ligne SQL brute.
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * Convertit une valeur de formulaire (souvent string) vers le type PHP déclaré.
+     */
     private static function coerce(mixed $value, mixed $type): mixed
     {
         if (!$type instanceof ReflectionNamedType) {

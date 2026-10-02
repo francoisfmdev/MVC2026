@@ -11,9 +11,14 @@ namespace Core\Console;
  */
 abstract class Command
 {
-    /** @param list<string> $arguments */
+    /**
+     * Exécute la commande. Code retour Unix : 0 = OK, 1 = erreur.
+     *
+     * @param list<string> $arguments
+     */
     abstract public function handle(array $arguments): int;
 
+    /** article-status → ArticleStatus (classe PHP). */
     public function studly(string $value): string
     {
         $value = str_replace(['-', '_', '/'], ' ', $value);
@@ -22,6 +27,7 @@ abstract class Command
         return str_replace(' ', '', $value);
     }
 
+    /** ArticleStatus → article_status (nom de table). */
     public function snake(string $value): string
     {
         $value = preg_replace('/(?<!^)[A-Z]/', '_$0', $value) ?? $value;
@@ -29,6 +35,7 @@ abstract class Command
         return strtolower($value);
     }
 
+    /** Pluriel naïf pédagogique : category → categories, todo → todos. */
     public function plural(string $snake): string
     {
         if (str_ends_with($snake, 'y') && !preg_match('/[aeiou]y$/', $snake)) {
@@ -57,6 +64,7 @@ abstract class Command
         return str_replace(array_keys($replacements), array_values($replacements), $contents);
     }
 
+    /** Écrit un fichier ; refuse d'écraser (évite d'effacer le travail de l'étudiant). */
     public function write(string $path, string $contents): void
     {
         $dir = dirname($path);
@@ -70,17 +78,23 @@ abstract class Command
         $this->line('Créé : ' . str_replace(BASE_PATH . DIRECTORY_SEPARATOR, '', $path));
     }
 
+    /** Message sur stdout. */
     public function line(string $message): void
     {
         fwrite(STDOUT, $message . PHP_EOL);
     }
 
+    /** Message d'erreur sur stderr. */
     public function error(string $message): void
     {
         fwrite(STDERR, $message . PHP_EOL);
     }
 
-    /** @param list<string> $arguments */
+    /**
+     * Lit --nom ou --nom=valeur. Flag sans valeur → chaîne "true".
+     *
+     * @param list<string> $arguments
+     */
     protected function option(array $arguments, string $name): ?string
     {
         foreach ($arguments as $argument) {
@@ -95,7 +109,11 @@ abstract class Command
         return null;
     }
 
-    /** @param list<string> $arguments */
+    /**
+     * Arguments qui ne commencent pas par - (le nom du modèle, etc.).
+     *
+     * @param list<string> $arguments
+     */
     protected function positional(array $arguments): array
     {
         return array_values(array_filter(

@@ -6,9 +6,10 @@ namespace App\DTO;
 
 use Core\DTO;
 
-/** Données du formulaire / POST JSON (création et mise à jour). */
-final class UserInputDTO extends DTO
+/** Données du formulaire / JSON d'inscription. */
+final class RegisterDTO extends DTO
 {
     public string $name;
     public string $email;
+    public string $password;
 }

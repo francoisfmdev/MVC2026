@@ -4,6 +4,14 @@
 
 {% block content %}
     <h1>Framework MVC pédagogique</h1>
-    <p>Exemple CRUD : gestion des utilisateurs (Web Twig + API JSON, même modèle).</p>
-    <p><a class="button" href="{{ url('/users') }}">Voir les utilisateurs</a></p>
+    <p>Inscription / connexion, puis todo list (accès connecté).</p>
+    {% if auth_user %}
+        <p>Bonjour {{ auth_user.name }}.</p>
+        <p><a class="button" href="{{ url('/todos') }}">Voir les tâches</a></p>
+    {% else %}
+        <p>
+            <a class="button" href="{{ url('/login') }}">Connexion</a>
+            <a href="{{ url('/register') }}">Créer un compte</a>
+        </p>
+    {% endif %}
 {% endblock %}

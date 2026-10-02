@@ -16,10 +16,14 @@ final class Database
 {
     private static ?PDO $instance = null;
 
+    /** Empêche new Database() : on passe toujours par connection(). */
     private function __construct()
     {
     }
 
+    /**
+     * Retourne la connexion PDO unique. Ouvre MySQL au premier appel.
+     */
     public static function connection(): PDO
     {
         if (self::$instance === null) {
@@ -48,6 +52,7 @@ final class Database
         self::$instance = null;
     }
 
+    /** Injecte un PDO (tests, SQLite mémoire). */
     public static function setConnection(PDO $pdo): void
     {
         self::$instance = $pdo;

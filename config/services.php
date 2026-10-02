@@ -21,9 +21,11 @@ return function (Container $c): void {
     $c->singleton(\PDO::class, fn () => Database::connection());
     $c->singleton(Session::class, fn () => new Session());
     $c->singleton(Csrf::class, fn (Container $c) => new Csrf($c->make(Session::class)));
+    $c->singleton(\App\Auth::class, fn (Container $c) => new \App\Auth($c->make(Session::class)));
     $c->singleton(View::class, fn (Container $c) => new View(
         BASE_PATH . '/app/Web/Views',
-        $c->make(Csrf::class)
+        $c->make(Csrf::class),
+        $c->make(\App\Auth::class)
     ));
     $c->singleton(Request::class, fn () => Request::fromGlobals());
 };

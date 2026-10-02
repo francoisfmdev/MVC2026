@@ -11,14 +11,17 @@ use Throwable;
 /**
  * Wrapper AltoRouter.
  *
- * 1. Charge config/routes.php (tableau PHP, pas de DSL).
- * 2. Ajoute CsrfMiddleware tout seul sur les verbes mutateurs web (pas /api).
+ * 1. Charge config/routes_web.php puis config/routes_api.php.
+ * 2. Ajoute CsrfMiddleware tout seul sur les verbes mutateurs du fichier web.
  * 3. Match URL + verbe → instancie le contrôleur via le conteneur.
  * 4. Exécute la chaîne de middlewares (onion) puis Controller#methode(Request).
  * 5. 404 : HTML ou JSON selon le préfixe /api (pas d'en-tête Accept).
  */
 final class Router
 {
+    /**
+     * DI : conteneur (contrôleurs), View (404 HTML), Request courante.
+     */
     public function __construct(
         private Container $container,
         private View $view,
@@ -26,19 +29,23 @@ final class Router
     ) {
     }
 
+    /**
+     * Point d'entrée HTTP : charge les routes, matche, pipeline, contrôleur.
+     */
     public function dispatch(): mixed
     {
         $alto = new AltoRouter();
 
-        /** @var list<array{0: string, 1: string, 2: string, 3?: array{middleware?: list<class-string>}}> $routes */
-        $routes = require BASE_PATH . '/config/routes.php';
+        $web = require BASE_PATH . '/config/routes_web.php';
+        $api = require BASE_PATH . '/config/routes_api.php';
+        $routes = array_merge($web, $api);
 
         foreach ($routes as $route) {
             [$method, $path, $handler] = $route;
             $options = $route[3] ?? [];
             $middlewares = $options['middleware'] ?? [];
 
-            // CSRF obligatoire sur les formulaires HTML ; l'API s'en passe (jeton Bearer / CORS).
+            // CSRF : formulaires HTML uniquement (fichier web, pas /api).
             if (!$this->isApiPath($path) && in_array(strtoupper($method), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
                 array_unshift($middlewares, CsrfMiddleware::class);
             }
@@ -90,6 +97,9 @@ final class Router
         return $pipeline($this->request);
     }
 
+    /**
+     * Instancie le contrôleur via le conteneur et appelle la méthode avec Request.
+     */
     private function callController(string $handler, Request $request): mixed
     {
         if (!str_contains($handler, '#')) {
@@ -107,11 +117,13 @@ final class Router
         return $controller->{$method}($request);
     }
 
+    /** Les chemins API commencent toujours par /api (pas d'en-tête Accept). */
     private function isApiPath(string $path): bool
     {
         return str_starts_with($path, '/api');
     }
 
+    /** 404 HTML (Twig) ou JSON selon isApi(). */
     private function notFound(): mixed
     {
         http_response_code(404);
@@ -130,6 +142,10 @@ final class Router
         return null;
     }
 
+    /**
+     * Handler global : page 500 Twig ou JSON {error, status}.
+     * $request permet de distinguer /api même si l'exception vient d'un middleware.
+     */
     public static function handleException(Throwable $e, ?Request $request = null): void
     {
         $isApi = $request?->isApi() ?? str_starts_with((string) ($_SERVER['REQUEST_URI'] ?? ''), '/api');

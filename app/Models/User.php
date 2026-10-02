@@ -7,8 +7,8 @@ namespace App\Models;
 use Core\Model;
 
 /**
- * Modèle de la table `users`.
- * Pas de relations, pas d'attributs mappés : User::all() renvoie des tableaux SQL.
+ * Compte utilisateur (authentification). Pas de CRUD public.
+ * Ne jamais envoyer password_hash à Twig ni en JSON.
  */
 final class User extends Model
 {

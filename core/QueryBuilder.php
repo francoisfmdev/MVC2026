@@ -61,6 +61,11 @@ final class QueryBuilder
     /** @var array<string, mixed> */
     private array $writeData = [];
 
+    /**
+     * Prépare un QueryBuilder sur une table (PDO déjà ouvert).
+     *
+     * @param string $table nom SQL brut, sera quoté (`todos`)
+     */
     public function __construct(
         private PDO $pdo,
         private string $table,
@@ -68,6 +73,10 @@ final class QueryBuilder
         $this->tableSql = $this->quoteIdentifier($table);
     }
 
+    /**
+     * Clause SELECT. Sans argument : SELECT *.
+     * On peut passer des expressions (COUNT(*), colonnes).
+     */
     public function select(string ...$columns): self
     {
         $this->type = 'select';
@@ -92,6 +101,7 @@ final class QueryBuilder
         return $this;
     }
 
+    /** Comme where(), mais avec OR au lieu de AND. */
     public function orWhere(string $column, mixed $operator, mixed $value = null): self
     {
         if (func_num_args() === 2) {
@@ -104,7 +114,11 @@ final class QueryBuilder
         return $this;
     }
 
-    /** @param list<mixed> $values */
+    /**
+     * WHERE col IN (?, ?, …). Tableau vide → 1 = 0 (aucun résultat, SQL valide).
+     *
+     * @param list<mixed> $values
+     */
     public function whereIn(string $column, array $values): self
     {
         if ($values === []) {
@@ -119,6 +133,7 @@ final class QueryBuilder
         return $this;
     }
 
+    /** WHERE `col` IS NULL (pas de placeholder). */
     public function whereNull(string $column): self
     {
         $this->addWhere('AND', $this->quoteIdentifier($column) . ' IS NULL', []);
@@ -126,6 +141,7 @@ final class QueryBuilder
         return $this;
     }
 
+    /** INNER JOIN table ON first operator second (identifiants quotés). */
     public function join(string $table, string $first, string $operator, string $second): self
     {
         $this->joins[] = 'INNER JOIN ' . $this->quoteIdentifier($table)
@@ -134,6 +150,7 @@ final class QueryBuilder
         return $this;
     }
 
+    /** LEFT JOIN … ON … (même signature que join()). */
     public function leftJoin(string $table, string $first, string $operator, string $second): self
     {
         $this->joins[] = 'LEFT JOIN ' . $this->quoteIdentifier($table)
@@ -142,6 +159,7 @@ final class QueryBuilder
         return $this;
     }
 
+    /** Clause GROUP BY (une ou plusieurs colonnes). */
     public function groupBy(string ...$columns): self
     {
         foreach ($columns as $column) {
@@ -151,6 +169,9 @@ final class QueryBuilder
         return $this;
     }
 
+    /**
+     * HAVING après un GROUP BY. Bindings séparés de WHERE pour l'ordre des ?.
+     */
     public function having(string $column, mixed $operator, mixed $value = null): self
     {
         if (func_num_args() === 2) {
@@ -164,6 +185,7 @@ final class QueryBuilder
         return $this;
     }
 
+    /** ORDER BY col ASC|DESC. */
     public function orderBy(string $column, string $direction = 'ASC'): self
     {
         $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
@@ -172,6 +194,7 @@ final class QueryBuilder
         return $this;
     }
 
+    /** LIMIT n (pagination). */
     public function limit(int $limit): self
     {
         $this->limit = $limit;
@@ -179,6 +202,7 @@ final class QueryBuilder
         return $this;
     }
 
+    /** OFFSET n (à combiner avec limit()). */
     public function offset(int $offset): self
     {
         $this->offset = $offset;
@@ -197,7 +221,11 @@ final class QueryBuilder
         };
     }
 
-    /** @return list<mixed> */
+    /**
+     * Valeurs des ? dans le même ordre que toSql().
+     *
+     * @return list<mixed>
+     */
     public function getBindings(): array
     {
         return match ($this->type) {
@@ -208,7 +236,11 @@ final class QueryBuilder
         };
     }
 
-    /** @return list<array<string, mixed>> */
+    /**
+     * Exécute le SELECT et retourne toutes les lignes (tableaux associatifs).
+     *
+     * @return list<array<string, mixed>>
+     */
     public function get(): array
     {
         $this->type = 'select';
@@ -217,7 +249,11 @@ final class QueryBuilder
         return $stmt->fetchAll();
     }
 
-    /** @return array<string, mixed>|null */
+    /**
+     * Première ligne du SELECT, ou null. Ajoute LIMIT 1.
+     *
+     * @return array<string, mixed>|null
+     */
     public function first(): ?array
     {
         $this->limit(1);
@@ -226,6 +262,7 @@ final class QueryBuilder
         return $rows[0] ?? null;
     }
 
+    /** SELECT COUNT(*) en ignorant limit/offset. */
     public function count(): int
     {
         $previousColumns = $this->columns;
@@ -246,7 +283,11 @@ final class QueryBuilder
         return (int) ($row['aggregate'] ?? 0);
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * INSERT et retourne lastInsertId.
+     *
+     * @param array<string, mixed> $data
+     */
     public function insert(array $data): int
     {
         $this->type = 'insert';
@@ -257,7 +298,11 @@ final class QueryBuilder
         return (int) $this->pdo->lastInsertId();
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * UPDATE SET … + WHERE déjà posés. Retourne le nombre de lignes.
+     *
+     * @param array<string, mixed> $data
+     */
     public function update(array $data): int
     {
         $this->type = 'update';
@@ -268,6 +313,7 @@ final class QueryBuilder
         return $stmt->rowCount();
     }
 
+    /** DELETE + WHERE déjà posés. Sans WHERE, MySQL peut refuser ou tout effacer : toujours filtrer. */
     public function delete(): int
     {
         $this->type = 'delete';
@@ -276,7 +322,11 @@ final class QueryBuilder
         return $stmt->rowCount();
     }
 
-    /** @param list<mixed> $bindings */
+    /**
+     * Empile un fragment WHERE (AND/OR) et ses bindings.
+     *
+     * @param list<mixed> $bindings
+     */
     private function addWhere(string $boolean, string $sql, array $bindings): void
     {
         $prefix = $this->wheres === [] ? '' : " {$boolean} ";
@@ -286,6 +336,7 @@ final class QueryBuilder
         }
     }
 
+    /** Assemble SELECT … FROM … JOIN … WHERE … GROUP BY … HAVING … ORDER BY … LIMIT. */
     private function compileSelect(): string
     {
         $sql = 'SELECT ' . implode(', ', $this->columns) . ' FROM ' . $this->tableSql;
@@ -312,6 +363,7 @@ final class QueryBuilder
         return $sql;
     }
 
+    /** INSERT INTO table (cols) VALUES (?, …). */
     private function compileInsert(): string
     {
         $columns = array_map(fn (string $c) => $this->quoteIdentifier($c), array_keys($this->writeData));
@@ -320,6 +372,7 @@ final class QueryBuilder
         return 'INSERT INTO ' . $this->tableSql . ' (' . implode(', ', $columns) . ') VALUES (' . $placeholders . ')';
     }
 
+    /** UPDATE table SET col = ? … + WHERE. */
     private function compileUpdate(): string
     {
         $sets = [];
@@ -330,11 +383,13 @@ final class QueryBuilder
         return 'UPDATE ' . $this->tableSql . ' SET ' . implode(', ', $sets) . $this->compileWhere();
     }
 
+    /** DELETE FROM table + WHERE. */
     private function compileDelete(): string
     {
         return 'DELETE FROM ' . $this->tableSql . $this->compileWhere();
     }
 
+    /** Préfixe WHERE si au moins une condition. */
     private function compileWhere(): string
     {
         if ($this->wheres === []) {
@@ -344,7 +399,11 @@ final class QueryBuilder
         return ' WHERE ' . implode('', $this->wheres);
     }
 
-    /** @param list<mixed> $bindings */
+    /**
+     * prepare + execute : les valeurs ne sont jamais concaténées dans le SQL.
+     *
+     * @param list<mixed> $bindings
+     */
     private function execute(string $sql, array $bindings): PDOStatement
     {
         $stmt = $this->pdo->prepare($sql);
@@ -353,6 +412,9 @@ final class QueryBuilder
         return $stmt;
     }
 
+    /**
+     * Entoure un identifiant de backticks MySQL. Laisse passer * et les expressions (COUNT).
+     */
     private function quoteIdentifier(string $name): string
     {
         if ($name === '*' || str_contains($name, '(') || str_contains($name, ' ')) {

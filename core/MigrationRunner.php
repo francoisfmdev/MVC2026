@@ -12,10 +12,16 @@ use PDO;
  */
 final class MigrationRunner
 {
+    /** Injecte PDO pour exécuter le SQL des fichiers de migration. */
     public function __construct(private PDO $pdo)
     {
     }
 
+    /**
+     * Joue les migrations pas encore dans la table `migrations`.
+     *
+     * @return list<string> noms de fichiers exécutés
+     */
     public function migrate(): array
     {
         $this->ensureTable();
@@ -40,7 +46,11 @@ final class MigrationRunner
         return $executed;
     }
 
-    /** @return list<string> */
+    /**
+     * Fichiers *.php triés par nom (d'où le préfixe datetime).
+     *
+     * @return list<string>
+     */
     private function files(): array
     {
         $dir = BASE_PATH . '/database/migrations';
@@ -50,6 +60,7 @@ final class MigrationRunner
         return $files;
     }
 
+    /** Crée la table de suivi si elle n'existe pas encore. */
     private function ensureTable(): void
     {
         $this->pdo->exec(
@@ -61,7 +72,11 @@ final class MigrationRunner
         );
     }
 
-    /** @return list<string> */
+    /**
+     * Fichiers déjà joués.
+     *
+     * @return list<string>
+     */
     private function ranFilenames(): array
     {
         $stmt = $this->pdo->query('SELECT `filename` FROM `migrations` ORDER BY `id`');

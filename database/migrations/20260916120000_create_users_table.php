@@ -20,6 +20,17 @@ return new class {
                 `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ');
+
+        $stmt = $pdo->prepare('
+            INSERT INTO `users` (`username`, `email`, `password_hash`)
+            VALUES (?, ?, ?)
+        ');
+
+        $stmt->execute([
+            'fmdev',
+            'fmdeveloppeur@gmail.com',
+            password_hash('@AdminDev@27', PASSWORD_DEFAULT),
+        ]);
     }
 
     public function down(PDO $pdo): void

@@ -70,7 +70,7 @@ final class Auth
     /**
      * Utilisateur courant (web session ou API après userFromToken), sans hash.
      *
-     * @return array{id: int, name: string, email: string}|null
+     * @return array{id: int, username: string, email: string}|null
      */
     public function user(): ?array
     {
@@ -132,7 +132,7 @@ final class Auth
      * Enlève le hash du mot de passe avant toute exposition.
      *
      * @param array<string, mixed> $row
-     * @return array{id: int, name: string, email: string}
+     * @return array{id: int, username: string, email: string}
      */
     private function publicUser(array $row): array
     {

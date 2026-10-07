@@ -9,7 +9,7 @@ use Core\DTO;
 /** Données du formulaire / JSON d'inscription. */
 final class RegisterDTO extends DTO
 {
-    public string $name;
+    public string $username;
     public string $email;
     public string $password;
 }

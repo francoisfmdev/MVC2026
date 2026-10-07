@@ -13,6 +13,6 @@ use Core\DTO;
 final class UserDTO extends DTO
 {
     public int $id;
-    public string $name;
+    public string $username;
     public string $email;
 }

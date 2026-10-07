@@ -4,10 +4,13 @@
 
 {% block content %}
     <h1>Framework MVC pédagogique</h1>
-    <p>Inscription / connexion, puis todo list (accès connecté).</p>
+    <p>Inscription / connexion, puis parcours authentifié avec liste des utilisateurs et exemple de todo list.</p>
     {% if auth_user %}
-        <p>Bonjour {{ auth_user.name }}.</p>
-        <p><a class="button" href="{{ url('/todos') }}">Voir les tâches</a></p>
+        <p>Bonjour {{ auth_user.username }}.</p>
+        <p>
+            <a class="button" href="{{ url('/users') }}">Voir les utilisateurs</a>
+            <a href="{{ url('/todos') }}">Voir les tâches</a>
+        </p>
     {% else %}
         <p>
             <a class="button" href="{{ url('/login') }}">Connexion</a>

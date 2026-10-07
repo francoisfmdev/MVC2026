@@ -19,6 +19,8 @@ return [
     ['POST', '/register', 'App\\Web\\Controllers\\AuthController#register'],
     ['POST', '/logout', 'App\\Web\\Controllers\\AuthController#logout', ['middleware' => [AuthMiddleware::class]]],
 
+    ['GET', '/users', 'App\\Web\\Controllers\\UserController#index', ['middleware' => [AuthMiddleware::class]]],
+
     ['GET', '/todos', 'App\\Web\\Controllers\\TodoController#index', ['middleware' => [AuthMiddleware::class]]],
     ['GET', '/todos/create', 'App\\Web\\Controllers\\TodoController#create', ['middleware' => [AuthMiddleware::class]]],
     ['POST', '/todos', 'App\\Web\\Controllers\\TodoController#store', ['middleware' => [AuthMiddleware::class]]],

@@ -24,15 +24,22 @@ final class AuthController extends ApiController
             return;
         }
 
-        $exists = User::table()->where('email', '=', $input->email)->first();
-        if ($exists !== null) {
+        $emailExists = User::table()->where('email', '=', $input->email)->first();
+        if ($emailExists !== null) {
             $this->error('Cet email est déjà utilisé.', 422);
 
             return;
         }
 
+        $usernameExists = User::table()->where('username', '=', $input->username)->first();
+        if ($usernameExists !== null) {
+            $this->error("Ce nom d'utilisateur est déjà utilisé.", 422);
+
+            return;
+        }
+
         $id = User::insert([
-            'name' => $input->name,
+            'username' => $input->username,
             'email' => $input->email,
             'password_hash' => password_hash($input->password, PASSWORD_DEFAULT),
         ]);

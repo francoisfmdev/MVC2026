@@ -16,7 +16,7 @@ final class AuthController extends Controller
     public function showLogin(Request $request): void
     {
         if ($this->auth->check()) {
-            $this->redirect('/todos');
+            $this->redirect('/users');
         }
         $this->view('auth/login.twig');
     }
@@ -38,13 +38,13 @@ final class AuthController extends Controller
         }
 
         $this->session->flash('success', 'Vous êtes connecté.');
-        $this->redirect('/todos');
+        $this->redirect('/users');
     }
 
     public function showRegister(Request $request): void
     {
         if ($this->auth->check()) {
-            $this->redirect('/todos');
+            $this->redirect('/users');
         }
         $this->view('auth/register.twig');
     }
@@ -59,15 +59,22 @@ final class AuthController extends Controller
             $this->redirect('/register');
         }
 
-        $exists = User::table()->where('email', '=', $input->email)->first();
-        if ($exists !== null) {
+        $emailExists = User::table()->where('email', '=', $input->email)->first();
+        if ($emailExists !== null) {
             $this->session->flash('error', 'Cet email est déjà utilisé.');
             $this->session->flash('old', $request->all());
             $this->redirect('/register');
         }
 
+        $usernameExists = User::table()->where('username', '=', $input->username)->first();
+        if ($usernameExists !== null) {
+            $this->session->flash('error', "Ce nom d'utilisateur est déjà utilisé.");
+            $this->session->flash('old', $request->all());
+            $this->redirect('/register');
+        }
+
         $id = User::insert([
-            'name' => $input->name,
+            'username' => $input->username,
             'email' => $input->email,
             'password_hash' => password_hash($input->password, PASSWORD_DEFAULT),
         ]);
@@ -78,7 +85,7 @@ final class AuthController extends Controller
         }
 
         $this->session->flash('success', 'Compte créé, vous êtes connecté.');
-        $this->redirect('/todos');
+        $this->redirect('/users');
     }
 
     public function logout(Request $request): void

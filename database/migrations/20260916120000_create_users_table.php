@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use PDO;
-
 /**
  * SQL brut volontaire : pas de schéma abstrait.
  * Table des comptes (auth uniquement, plus de CRUD public).
@@ -15,10 +13,11 @@ return new class {
         $pdo->exec('
             CREATE TABLE `users` (
                 `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                `name` VARCHAR(100) NOT NULL,
+                `username` VARCHAR(100) NOT NULL UNIQUE,
                 `email` VARCHAR(190) NOT NULL UNIQUE,
                 `password_hash` VARCHAR(255) NOT NULL,
-                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ');
     }
